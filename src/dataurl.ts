@@ -1,3 +1,4 @@
+import { getMimeTypeFromData } from './mimes'
 import { Options } from './types'
 
 function getContentFromDataUrl(dataURL: string) {
@@ -69,6 +70,8 @@ export async function resourceToDataURL(
     options.includeQueryParams,
   )
 
+  let newContentType = contentType
+
   if (cache[cacheKey] != null) {
     return cache[cacheKey]
   }
@@ -85,14 +88,21 @@ export async function resourceToDataURL(
       resourceUrl,
       options.fetchRequestInit,
       ({ res, result }) => {
-        if (!contentType) {
+        const typeFromBase64 = getMimeTypeFromData(result)
+        if (typeFromBase64 !== newContentType) {
+          if (newContentType !== undefined) {
+            newContentType = typeFromBase64
+          }
+        }
+
+        if (!newContentType) {
           // eslint-disable-next-line no-param-reassign
-          contentType = res.headers.get('Content-Type') || ''
+          newContentType = res.headers.get('Content-Type') || ''
         }
         return getContentFromDataUrl(result)
       },
     )
-    dataURL = makeDataUrl(content, contentType!)
+    dataURL = makeDataUrl(content, newContentType!)
   } catch (error) {
     dataURL = options.imagePlaceholder || ''
 
@@ -107,5 +117,6 @@ export async function resourceToDataURL(
   }
 
   cache[cacheKey] = dataURL
+
   return dataURL
 }

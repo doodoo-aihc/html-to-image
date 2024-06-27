@@ -23,3 +23,12 @@ export function getMimeType(url: string): string {
   const extension = getExtension(url).toLowerCase()
   return mimes[extension] || ''
 }
+
+export function getMimeTypeFromData(base64Data: string): string {
+  const data = base64Data.split(',')[0]
+  // data:image/webp;base64,UklGRo4fAABXRUJQVlA4WAoAAAAQAAAA8
+  // regex to get the mime type
+  // image/webp
+  const matches = data.match(/:(.*);/)
+  return matches ? matches[1] : ''
+}
